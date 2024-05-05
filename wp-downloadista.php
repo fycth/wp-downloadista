@@ -151,7 +151,7 @@ function downloadista_generate_new_download_link($file_id, $file_name) {
 	return downloadista_generate_download_link_js($file_id, $file_name, $download_url, $utc_expiration, strtolower(substr($file_url, -4)) === '.zip');
 }
 
-function downloadista_generate_download_link_js($file_id, $file_name, $file_url, $utc_expiration, $is_zip) {
+function downloadista_generate_download_link_js($file_id, $file_desc, $file_url, $utc_expiration, $is_zip) {
 	// JavaScript for countdown and displaying the download link
 	$options = get_option('downloadista_options');
 	$button_text_color = $options['button_text_color'];
@@ -171,14 +171,16 @@ function downloadista_generate_download_link_js($file_id, $file_name, $file_url,
 	$file_size = downloadista_get_attachment_file_size($file_id);
     $file_size_str = '';
 	if (is_numeric($file_size) && $file_size > 0) {
-		$file_size_str = 'File size: ' . size_format($file_size, 2);
+		$file_size_str = 'Size: ' . size_format($file_size, 2);
 	}
+    $file_name = 'Name: ' . downloadista_get_file_name_by_attachment_id($file_id);
 
 	$download_box = "<div id=\"downloadista-counter\" class=\"flex-container\" style=\"color: $pane_text_color; background-color: $pane_background_color; width: 100%; overflow: auto; border-width: " . $pane_border_size . "px; padding: 15px;\" data-url='" . esc_attr($file_url) . "' data-expiration='" . esc_attr($utc_expiration) . "'>
     ". $file_icon ."
     <div class=\"text-container\">
-        <p> ". $file_name . "</p>
+        <p> " . $file_desc . "</p>
         <p> ". $file_size_str . "</p>
+        <p> ". $file_name . "</p>
     </div>
     <button id=\"startCounterButton\" class=\"right-button\" style=\"float: right; background-color: $button_background_color; color: $button_text_color; padding: 15px 32px; font-size: 16px; border: none; cursor: pointer;\">
             $button_text
@@ -200,6 +202,16 @@ function downloadista_get_attachment_file_size($file_id) {
 		// Handle the error if file doesn't exist
 		return 0;
 	}
+}
+
+function downloadista_get_file_name_by_attachment_id($file_id) {
+	// Get the full file path from the attachment ID
+	$file_path = get_attached_file($file_id);
+
+	// Use basename() to extract the file name from the path
+	$file_name = basename($file_path);
+
+	return $file_name;
 }
 
 function downloadista_handle_download_request() {
